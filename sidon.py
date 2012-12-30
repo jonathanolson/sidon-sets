@@ -2,11 +2,15 @@ from copy import deepcopy
 
 class SidonState:
     """Contains a Sidon set in state, with additional data about differences and possible other elements"""
-    def __init__( self ):
+    def __init__( self, initState=[] ):
         self.state = []              # our Sidon set
         self.excluded = set([])      # numbers that cannot be added to our Sidon set
         self.differences = set([])   # differences between all elements of the set
         self.nextPositiveOpening = 1 # for canonical Sidon sets, the smallest positive number that can be added to the set
+        
+        # initialize
+        for element in initState:
+            self.add( element )
     
     def add( self, x ):
         # store new differences that we need to apply to all old elements
