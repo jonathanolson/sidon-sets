@@ -120,6 +120,10 @@ def mianChowla( n ):
         result.add( result.nextPositiveOpening )
     return result
 
+def hasMaximalOnly( n ):
+    """Whether all maximal canonical Sidon sets in 1,...,n contain 1 and n"""
+    return all( [x.state[-1] == n for x in maxUnder( n )] )
+
 def websiteCanonicalList( nMax ):
     """Prints out a MathJax-compatible list of maximal canonical Sidon sets"""
     for n in range( 1, nMax ):
