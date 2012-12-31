@@ -119,3 +119,9 @@ def mianChowla( n ):
     while len( result.state ) < n:
         result.add( result.nextPositiveOpening )
     return result
+
+def websiteCanonicalList( nMax ):
+    """Prints out a MathJax-compatible list of maximal canonical Sidon sets"""
+    for n in range( 1, nMax ):
+        sets = canonicalMax( n )
+        print "<li>" + (", ".join( [ "$\{" + ",".join( [x.__str__() for x in s.state] ) + "\}$" for s in sets ] ) ) + "</li>"
