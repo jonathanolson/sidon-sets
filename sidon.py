@@ -73,6 +73,7 @@ class SidonState:
 
 def setsUnder( n ):
     """List of all Sidon subsets of 1,...,n"""
+    # TODO: consider rewrite from setsIterate
     baseState = SidonState()
     baseState.add( 1 )
     
@@ -87,6 +88,21 @@ def setsUnder( n ):
                 result.extend( under( stateCopy, option + 1 ) )
         return result
     return under( baseState, 2 )
+
+def setsIterate( n, callback ):
+    """Calls callback successively with all elements from setsUnder( n )"""
+    baseState = SidonState()
+    baseState.add( 1 )
+    
+    def under( state, a ):
+        callback( state )
+        if a <= n:
+            for option in range( a, n + 1 ):
+                if option not in state.excluded:
+                    stateCopy = deepcopy( state )
+                    stateCopy.add( option )
+                    under( stateCopy, option + 1 )
+    under( baseState, 2 )
 
 def maxUnder( n ):
     """List of Sidon subsets of 1,...,n that have the maximum possible cardinality"""
@@ -121,8 +137,18 @@ def mianChowla( n ):
     return result
 
 def hasMaximalOnly( n ):
-    """Whether all maximal canonical Sidon sets in 1,...,n contain 1 and n"""
-    return all( [x.state[-1] == n for x in maxUnder( n )] )
+    """Whether all maximal Sidon sets in 1,...,n contain 1 and n"""
+    #return all( [x.state[-1] == n for x in maxUnder( n )] )
+    k = [0] # array but a scalar value, so we can modify inside the closure
+    kn = [True]
+    def handle( s ):
+        if len( s.state ) > k[0]:
+            k[0] = len( s.state )
+            kn[0] = (s.state[-1] == n)
+        elif len( s.state ) == k[0]:
+            kn[0] = kn[0] and (s.state[-1] == n)
+    setsIterate( n, handle )
+    return kn[0]
 
 def websiteCanonicalList( nMax ):
     """Prints out a MathJax-compatible list of maximal canonical Sidon sets"""
