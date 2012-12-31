@@ -1,6 +1,7 @@
 #!/usr/bin/python -O
 
 # computation of canonical Sidon sets
+# @author Jonathan Olson
 
 from copy import deepcopy
 
