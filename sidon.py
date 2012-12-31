@@ -1,8 +1,12 @@
+#!/usr/bin/python -O
+
+# computation of canonical Sidon sets
+
 from copy import deepcopy
 
 class SidonState:
     """Contains a Sidon set in state, with additional data about differences and possible other elements"""
-    def __init__( self, initState=[] ):
+    def __init__( self, *initState ):
         self.state = []              # our Sidon set
         self.excluded = set([])      # numbers that cannot be added to our Sidon set
         self.differences = set([])   # differences between all elements of the set
@@ -13,6 +17,7 @@ class SidonState:
             self.add( element )
     
     def add( self, x ):
+        """Adds a number into the Sidon set, and computes the associated extra data"""
         # store new differences that we need to apply to all old elements
         freshDifferences = []
         
@@ -45,6 +50,20 @@ class SidonState:
         self.excluded.add( a + diff )
         self.excluded.add( a - diff )
     
+    def negatedPair( self, n ):
+        return SidonState( *sorted( [n - x + 1 for x in self.state] ) )
+    
+    def canonical( self ):
+        # negated pair for the maximum element
+        offset = 1 - self.state[0]
+        translated = SidonState( *[x + offset for x in self.state] )
+        n = translated.state[-1]
+        pair = translated.negatedPair( n )
+        if translated.state < pair.state:
+            return translated
+        else:
+            return pair
+    
     def __str__( self ):
         return self.state.__str__()
     
@@ -52,6 +71,7 @@ class SidonState:
         return "<" + self.__str__() + ">"
 
 def setsUnder( n ):
+    """List of all Sidon subsets of 1,...,n"""
     baseState = SidonState()
     baseState.add( 1 )
     
@@ -68,39 +88,33 @@ def setsUnder( n ):
     return under( baseState, 2 )
 
 def maxUnder( n ):
+    """List of Sidon subsets of 1,...,n that have the maximum possible cardinality"""
     sets = setsUnder( n )
     maxElements = max( [len(x.state) for x in sets] )
     return filter( lambda x: len( x.state ) == maxElements, sets )
 
-    
+def canonicalList( states ):
+    """Canonicalizes multiple states, removing duplicates"""
+    canonical = [state.canonical() for state in states]
+    # TODO: better way of sorting out unique states
+    results = []
+    for element in canonical:
+        ok = True
+        for result in results:
+            if result.state == element.state:
+                ok = False
+                break
+        if ok:
+            results.append( element )
+    return results 
 
+def canonicalMax( n ):
+    """Returns a list of canonicalized Sidon sets of maximum cardinality within 1,...,n"""
+    return canonicalList( maxUnder( n ) )
 
-def buildSequence( n ):
-    """Return the Mian-Chowla sequence for n elements.
-    Could be more efficient, this is just a very simple sieve.
-    """
-    result = [1]
-    excluded = set([1])
-    differences = set([])
-    
-    while len( result ) < n:
-        # find the next non-excluded element in the sequence
-        x = result[-1]
-        while x in excluded:
-            x += 1
-        
-        # add any new differences between x and previous elements
-        for a in result:
-            differences.add( abs( a - x ) )
-        
-        # add our new element to our reslt sequence
-        result.append( x )
-        
-        # exclude any numbers that would cause a duplicate difference
-        # inefficient here, since we would only need to handle the
-        # newest lengths
-        for a in result:
-            for difference in differences:
-                excluded.add( a + difference )
-                excluded.add( a - difference )
+def mianChowla( n ):
+    """First n elements of the Mian-Chowla Sequence"""
+    result = SidonState()
+    while len( result.state ) < n:
+        result.add( result.nextPositiveOpening )
     return result
