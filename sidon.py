@@ -71,6 +71,22 @@ class SidonState:
     def __repr__( self ):
         return "<" + self.__str__() + ">"
 
+m1 = [SidonState( 1 )]
+m2 = [SidonState( 1,2 )]
+m3 = [SidonState( 1,2,4 )]
+m4 = [SidonState( 1,2,5,7 )]
+m5 = [SidonState( 1,2,5,10,12 ), SidonState( 1,3,8,9,12 )]
+m6 = [SidonState( 1,2,5,11,13,18 ), SidonState( 1,2,5,11,16,18 ), SidonState( 1,2,9,12,14,18 ), SidonState( 1,2,9,13,15,18 )]
+m7 = [SidonState( 1,2,5,11,19,24,26 ), SidonState( 1,2,8,12,21,24,26 ), SidonState( 1,2,12,17,20,24,26 ), SidonState( 1,3,4,11,17,22,26 ), SidonState( 1,3,8,14,22,23,26 )]
+m8 = [SidonState( 1,2,5,10,16,23,33,35 )]
+m9 = [SidonState( 1,2,6,13,26,28,36,42,45 )]
+m10 = [SidonState( 1,2,7,11,24,27,35,42,54,56 )]
+m11 = [SidonState( 1,2,5,14,29,34,48,55,65,71,73 ), SidonState( 1,2,10,20,25,32,53,57,59,70,73 )]
+m12 = [SidonState( 1,3,7,25,30,41,44,56,69,76,77,86 )]
+m13 = [SidonState( 1,3,6,26,38,44,60,71,86,90,99,100,107 )]
+
+maxCanonicals = [m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,m13]
+
 def setsUnder( n ):
     """List of all Sidon subsets of 1,...,n"""
     # TODO: consider rewrite from setsIterate
@@ -150,12 +166,6 @@ def hasMaximalOnly( n ):
     setsIterate( n, handle )
     return kn[0]
 
-def websiteCanonicalList( nMax ):
-    """Prints out a MathJax-compatible list of maximal canonical Sidon sets"""
-    for n in [1,2,4,7,12,18,26,35,45]:
-        sets = canonicalMax( n )
-        print "<li>" + (", ".join( [ "$\{" + ",".join( [x.__str__() for x in s.state] ) + "\}$" for s in sets ] ) ) + "</li>"
-
 def sumset( state ):
     """A sorted list of numbers of the form a+b where a and b are in the state"""
     result = []
@@ -168,9 +178,36 @@ def sumset( state ):
     result.sort()
     return result
 
-def holes( state ):
+def sumHoles( state ):
     """Numbers not in the sumset that are between 2*(minElement) and 2*(maxElement)"""
-    spread = set(range( 2 * min( state.state ), 2 * max( state.state ) + 1 ))
+    spread = set( range( 2 * min( state.state ), 2 * max( state.state ) + 1 ) )
     for x in sumset( state ):
         spread.remove( x )
     return sorted( list( spread ) )
+
+def differenceHoles( state ):
+    """Differences between 1 and (maxElement-minElement) that are not present"""
+    spread = set( range( 1, max( state.state ) - min( state.state ) + 1 ) )
+    for x in state.differences:
+        if x > 0:
+            spread.remove( x )
+    return sorted( list( spread ) )
+
+def mathJaxList( list ):
+    return "$\{" + ",".join( [x.__str__() for x in list] ) + "\}$"
+
+def websiteEntry( state ):
+    result = len( state.state ).__str__() + ": " + mathJaxList( state.state )
+    sh = sumHoles( state )
+    dh = differenceHoles( state )
+    if len( dh ) > 0:
+        result += "<span class=\"text-error\">" + mathJaxList( dh ) + "</span>"
+    if len( sh ) > 0:
+        result += "<span class=\"text-success\">" + mathJaxList( sh ) + "</span>"
+    return result
+
+def websiteCanonicalList():
+    """Prints out a MathJax-compatible list of maximal canonical Sidon sets"""
+    for row in maxCanonicals:
+        for state in row:
+            print "<li>" + websiteEntry( state ) + "</li>"
