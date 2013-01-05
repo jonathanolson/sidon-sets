@@ -152,6 +152,25 @@ def hasMaximalOnly( n ):
 
 def websiteCanonicalList( nMax ):
     """Prints out a MathJax-compatible list of maximal canonical Sidon sets"""
-    for n in range( 1, nMax ):
+    for n in [1,2,4,7,12,18,26,35,45]:
         sets = canonicalMax( n )
         print "<li>" + (", ".join( [ "$\{" + ",".join( [x.__str__() for x in s.state] ) + "\}$" for s in sets ] ) ) + "</li>"
+
+def sumset( state ):
+    """A sorted list of numbers of the form a+b where a and b are in the state"""
+    result = []
+    size = len( state.state )
+    for i in range( size ):
+        a = state.state[i]
+        for j in range( i, size ):
+            b = state.state[j]
+            result.append( a + b )
+    result.sort()
+    return result
+
+def holes( state ):
+    """Numbers not in the sumset that are between 2*(minElement) and 2*(maxElement)"""
+    spread = set(range( 2 * min( state.state ), 2 * max( state.state ) + 1 ))
+    for x in sumset( state ):
+        spread.remove( x )
+    return sorted( list( spread ) )
